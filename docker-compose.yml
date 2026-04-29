@@ -1,0 +1,49 @@
+services:
+   geant4:
+      image: "carlomt/geant4:latest"
+      stdin_open: true
+      tty: true
+      volumes:
+         - geant4-datasets:/opt/geant4/data:ro
+         - ${DOCKERHOME}:/root
+      working_dir: /root
+
+   geant4-gui:
+      image: "carlomt/geant4:latest-gui"
+      stdin_open: true
+      tty: true
+      environment:
+         - DISPLAY=${DOCKERDISPLAY}
+         - LIBGL_ALWAYS_SOFTWARE=1
+         - QT_X11_NO_MITSHM=1
+         - QT_QPA_PLATFORM=xcb
+         - G4VIS_DEFAULT_DRIVER=${G4VIS_DEFAULT_DRIVER}
+      volumes:
+         - X11-unix:/tmp/.X11-unix
+         - geant4-datasets:/opt/geant4/data:ro
+         - ${DOCKERHOME}:/root
+      working_dir: /root
+
+   prepare:
+      image: "carlomt/geant4:latest"
+      command: >
+        /bin/bash -c "
+        /opt/geant4/bin/geant4-config --install-datasets "
+      stdin_open: true
+      tty: true
+      volumes:
+         - geant4-datasets:/opt/geant4/data
+
+volumes:
+   geant4-datasets:
+      driver: local
+      driver_opts:
+         type: 'none'
+         o: 'bind'
+         device: './geant4-datasets'
+   X11-unix:
+      driver: local
+      driver_opts:
+         type: 'none'
+         o: 'bind'
+         device: '${X11FOLDER}'
